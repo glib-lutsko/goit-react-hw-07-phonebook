@@ -1,64 +1,77 @@
-import { nanoid } from 'nanoid';
-import { useState } from 'react';
+import {
+  addContactsThunk,
+  getRequestContacts,
+} from 'components/redux/contactsThunk';
+import { useEffect, useState } from 'react';
+import { useDispatch } from 'react-redux';
 
-export const ContactForm = ({ contacts, onAddContact }) => {
-  const [name, setName] = useState('');
+export const ContactForm = () => {
+  const [userName, setUserName] = useState('');
   const [number, setNumber] = useState('');
 
-  const handleChange = e => {
-    const { name, value } = e.target;
-    if (name === 'name') {
-      setName(value);
-    } else if (name === 'number') {
-      setNumber(value);
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(getRequestContacts());
+  }, [dispatch]);
+
+  const handleInputContacts = e => {
+    switch (e.target.name) {
+      case 'userName':
+        setUserName(e.target.value);
+        break;
+
+      case 'number':
+        setNumber(e.target.value);
+        break;
+
+      default:
+        break;
     }
   };
 
-  const clearForm = () => {
-    setName('');
+  const handleAddContacts = ev => {
+    ev.preventDefault();
+    const newContact = {
+      name: userName,
+      phone: number,
+    };
+    dispatch(addContactsThunk(newContact));
+    reset();
+  };
+
+  const reset = () => {
+    setUserName('');
     setNumber('');
   };
 
-  const handleSubmit = e => {
-    e.preventDefault();
-    const newContact = { id: nanoid(), name, number };
-
-    const existsContact = contacts.find(contact => contact.name === name);
-
-    if (existsContact) {
-      alert(`${name} is already in contacts`);
-    } else {
-      onAddContact(newContact);
-      clearForm();
-    }
-  };
   return (
-    <form onSubmit={handleSubmit}>
-      <label>
+    <form onSubmit={handleAddContacts}>
+      <p>
         Name
         <input
+          onChange={handleInputContacts}
           type="text"
-          name="name"
+          name="userName"
+          value={userName}
           pattern="^[a-zA-Zа-яА-Я]+(([' \-][a-zA-Zа-яА-Я ])?[a-zA-Zа-яА-Я]*)*$"
           title="Name may contain only letters, apostrophe, dash and spaces. For example Adrian, Jacob Mercer, Charles de Batz de Castelmore d'Artagnan"
           required
-          value={name}
-          onChange={handleChange}
         />
-      </label>
-      <label>
+      </p>
+      <p>
         Number
         <input
+          onChange={handleInputContacts}
           type="tel"
           name="number"
+          value={number}
           pattern="\+?\d{1,4}?[ .\-\s]?\(?\d{1,3}?\)?[ .\-\s]?\d{1,4}[ .\-\s]?\d{1,4}[ .\-\s]?\d{1,9}"
           title="Phone number must be digits and can contain spaces, dashes, parentheses and can start with +"
           required
-          value={number}
-          onChange={handleChange}
         />
-      </label>
-      <button type="submit">Add contact</button>
+      </p>
+      <button type="submit">Add contacts</button>
     </form>
   );
 };
